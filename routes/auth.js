@@ -1,8 +1,8 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const verifyToken = require('../middlewares/verifyToken');
-const initialUsers = require('../fixtures/users.json');
+const express = require("express");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const verifyToken = require("../middlewares/verifyToken");
+const initialUsers = require("../fixtures/users.json");
 
 // ⚠️ 寫作業前先 `npm start` 打開 http://localhost:3000/docs 看 Swagger UI 的完整規格。
 // 💡 /* 作答區 ... */ 是答題提示區，取消註解後填入你的程式碼。
@@ -26,12 +26,40 @@ const router = express.Router();
 // - 輸出：201 + { status: 'success', message: '註冊成功' }，或 400 + { status: 'false', message: '...' }
 // - 提示：
 //   1. email、password 缺少任何一個欄位，或 email 已存在（使用陣列方法檢查）→ return 400 跟對應輸出訊息
-//   2. 密碼加密可使用 bcrypt 的 genSalt 與 hash 
+//   2. 密碼加密可使用 bcrypt 的 genSalt 與 hash
 //   3. 加密完成後，將新使用者（包含 id、email、加密後 password）存進 users，並 return 201 跟對應輸出訊息
 // - 注意：handler 是 async function
 /* 作答區
 router.METHOD('PATH', async (req, res) => { ... });
 */
+router.post("/register", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      status: "false",
+      message: "錯誤訊息",
+    });
+  }
+  const isExist = users.find((item) => item.email === email);
+  if (isExist) {
+    return res.status(400).json({
+      status: "false",
+      message: "錯誤訊息",
+    });
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  users.push({
+    id: nextId++,
+    email,
+    password: hash,
+  });
+  res.status(201).json({
+    status: "success",
+    message: "註冊成功",
+  });
+});
 
 // ───────────────────────────────────────────────────────────
 // TODO 任務三：POST /login
@@ -49,6 +77,37 @@ router.METHOD('PATH', async (req, res) => { ... });
 /* 作答區
 router.METHOD('PATH', async (req, res) => { ... });
 */
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = users.find((item) => item.email === email);
+  if (!user) {
+    return res.status(401).json({
+      status: "false",
+      message: "錯誤訊息",
+    });
+  }
+  const ok = user && (await bcrypt.compare(password, user.password));
+
+  if (!ok) {
+    return res.status(401).json({
+      status: "false",
+      message: "錯誤訊息",
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "30d" },
+  );
+  res.status(200).json({
+    status: "success",
+    token,
+  });
+});
 
 // ───────────────────────────────────────────────────────────
 // TODO 任務四：GET /me（受保護）

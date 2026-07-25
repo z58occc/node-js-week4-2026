@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 // ⚠️ 寫作業前先 `npm start` 打開 http://localhost:3000/docs 看 Swagger UI 的完整規格。
 // 💡 /* 作答區 ... */ 是答題提示區，取消註解後填入你的程式碼。
@@ -21,6 +21,22 @@ const jwt = require('jsonwebtoken');
  */
 const verifyToken = function (req, res, next) {
   /* 作答區 */
+  const authHeader = req.headers.authorization;
+  // 慣例：Authorization: Bearer <token>
+  if (!authHeader || !authHeader.startsWith("Bearer")) {
+    return res.status(401).json({ status: "false", message: "請先登入" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    // 驗過 → 把 user 塞進 req 給下游用
+    next();
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ status: "false", message: "Token 無效或已過期" });
+  }
 };
 
 module.exports = verifyToken;
