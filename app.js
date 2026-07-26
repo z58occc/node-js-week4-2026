@@ -1,9 +1,9 @@
-const express = require('express');
-const cors = require('cors');
-const swaggerUi = require('swagger-ui-express');
+const express = require("express");
+const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
 
-const authRouter = require('./routes/auth');
-const swaggerDoc = require('./fixtures/swagger.json');
+const authRouter = require("./routes/auth");
+const swaggerDoc = require("./fixtures/swagger.json");
 
 const app = express();
 
@@ -21,7 +21,23 @@ const app = express();
 //    - message：錯誤訊息
 //
 // ⚠️ **最後不需呼叫 app.listen()** — 這個部分交由 server.js 負責（分離「組裝」跟「啟動」，這樣 test.js 可以 supertest 直接戳 app、不佔 port）。
+app.use(cors());
+app.use(express.json());
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+app.use("/auth", authRouter);
+app.use((req, res) =>
+  res.status(404).json({
+    status: false,
+    message: "無此路由資訊",
+  }),
+);
+
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    err: err.name,
+    message: err.message,
+  });
+});
 
 module.exports = app;

@@ -119,5 +119,8 @@ router.post("/login", async (req, res) => {
 /* 作答區
 router.METHOD('PATH', middleware, (req, res) => { ... });
 */
+router.get('/me',verifyToken,(req,res)=>{
+  res.json({ status: 'success', user: req.user })
+})
 
 module.exports = router;
