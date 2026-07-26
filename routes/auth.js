@@ -38,14 +38,14 @@ router.post("/register", async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({
       status: "false",
-      message: "錯誤訊息",
+      message: "缺少帳號或密碼",
     });
   }
   const isExist = users.find((item) => item.email === email);
   if (isExist) {
     return res.status(400).json({
       status: "false",
-      message: "錯誤訊息",
+      message: "該帳號已存在",
     });
   }
 
@@ -83,7 +83,7 @@ router.post("/login", async (req, res) => {
   if (!user) {
     return res.status(401).json({
       status: "false",
-      message: "錯誤訊息",
+      message: "帳號或密碼錯誤",
     });
   }
   const ok = user && (await bcrypt.compare(password, user.password));
@@ -91,7 +91,7 @@ router.post("/login", async (req, res) => {
   if (!ok) {
     return res.status(401).json({
       status: "false",
-      message: "錯誤訊息",
+      message: "帳號或密碼錯誤",
     });
   }
 
